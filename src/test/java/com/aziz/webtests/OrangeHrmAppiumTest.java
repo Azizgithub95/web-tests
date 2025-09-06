@@ -67,33 +67,37 @@ public class OrangeHrmAppiumTest extends BaseClassWeb {
     /*------------------ Test OrangeHRM ------------------*/
 
     @Test
-    void loginOrangeHrm() {
+    void loginOrangeHrm() throws InterruptedException {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
         driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
 
-        // 1) Fermer d’abord les consentements qui bloquent l’écran
+        // 1) Fermer les consentements
         dismissChromeFirstRunIfAny();
         dismissWebCookiesIfAny();
 
         // 2) Attendre l’écran de login
         wait.until(ExpectedConditions.urlContains("/auth/login"));
 
-        // 3) Renseigner username / password (attributs NAME sur ce site)
+        // 3) Renseigner username / password
         WebElement user = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
         WebElement pass = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")));
 
-        fillField(user, "Admin");          // helper hérité de BaseClassWeb (click/clear/sendKeys + fallback JS)
+        fillField(user, "Admin");
         fillField(pass, "admin123");
 
-        // 4) Cliquer sur Login (bouton type=submit)
+        // 4) Cliquer sur Login
         WebElement loginBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
         jsClick(loginBtn);
 
-        // 5) Vérifier qu’on est bien loggé (dashboard chargé)
+        // 5) Vérifier qu’on est bien loggé
         wait.until(ExpectedConditions.or(
                 ExpectedConditions.urlContains("/dashboard"),
                 ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(.,'Dashboard') and self::* or self::h6]"))
         ));
+
+        // 6) Petite pause volontaire pour "voir" le dashboard
+        Thread.sleep(5000); // <-- 5 secondes de pause avant fermeture par @AfterEach
     }
+
 }
