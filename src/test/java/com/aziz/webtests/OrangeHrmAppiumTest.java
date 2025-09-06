@@ -19,7 +19,7 @@ public class OrangeHrmAppiumTest extends BaseClassWeb {
             String initial = driver.getContext();          // ex: CHROMIUM
             driver.context("NATIVE_APP");
 
-            WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(3));
+            WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(2));
             By noThanks   = AppiumBy.id("com.android.chrome:id/negative_button");
             By continueBt = AppiumBy.id("com.android.chrome:id/positive_button");
 
@@ -40,7 +40,7 @@ public class OrangeHrmAppiumTest extends BaseClassWeb {
 
     /** Ferme une éventuelle bannière cookies côté web (libellés courants EN/FR). */
     private void dismissWebCookiesIfAny() {
-        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(8));
+        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(2));
 
         // Si la bannière est dans une iframe, on y bascule (sélecteur large)
         try {
@@ -68,7 +68,7 @@ public class OrangeHrmAppiumTest extends BaseClassWeb {
 
     @Test
     void loginOrangeHrm() throws InterruptedException {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
         driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
 
@@ -95,6 +95,40 @@ public class OrangeHrmAppiumTest extends BaseClassWeb {
                 ExpectedConditions.urlContains("/dashboard"),
                 ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(.,'Dashboard') and self::* or self::h6]"))
         ));
+     // ====== LOGOUT ======
+        try {
+            // 1) Ouvre le menu utilisateur (avatar / nom en haut à droite)
+            By userMenu = By.cssSelector(
+                    "p.oxd-userdropdown-name, " +                  // <p> avec le nom
+                    "img.oxd-userdropdown-img, " +                 // avatar
+                    "i.oxd-icon.bi-caret-down-fill"                // chevron
+            );
+            // XPaths de secours (ceux de Katalon)
+            By userMenuFallback = By.xpath(
+                    "//div[@id='app']/div/div/header/div/div[3]/ul/li/span/p|" +
+                    "//div[@id='app']/div/div/header/div/div[3]/ul/li"
+            );
+
+            WebElement menuBtn;
+            try {
+                menuBtn = wait.until(ExpectedConditions.elementToBeClickable(userMenu));
+            } catch (TimeoutException e) {
+                menuBtn = wait.until(ExpectedConditions.elementToBeClickable(userMenuFallback));
+            }
+            jsClick(menuBtn);
+
+            // 2) Clique sur "Logout" dans le menu déroulant
+            By logout = By.xpath(
+                    "//a[@href='/web/index.php/auth/logout' or normalize-space()='Logout']"
+            );
+            WebElement logoutLink = wait.until(ExpectedConditions.elementToBeClickable(logout));
+            jsClick(logoutLink);
+
+            // 3) Attends le retour à la page de login (champ username visible)
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+        } catch (Exception e) {
+            System.out.println("Logout non effectué (menu introuvable ?) : " + e.getMessage());
+        }
 
         // 6) Petite pause volontaire pour "voir" le dashboard
         Thread.sleep(5000); // <-- 5 secondes de pause avant fermeture par @AfterEach

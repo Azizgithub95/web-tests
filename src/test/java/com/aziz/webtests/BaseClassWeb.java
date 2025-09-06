@@ -32,7 +32,7 @@ public class BaseClassWeb {
 
         // Appium sur le port 4725
         driver = new AndroidDriver(new URL("http://127.0.0.1:4725"), opts);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
     }
 
     @AfterEach
